@@ -1,0 +1,19 @@
+id: DISC-P
+name: Problem Discovery
+goal: Establish a painful, valuable job-to-be-done.
+artifacts:
+  - interviews.md
+  - problem-statement.md
+  - competitor-scan.md
+  - tam-fermi.md
+evidence:
+  min_interviews: 10
+  repeated_pain_signals: true
+  willingness_to_pay_quotes: true
+policy_level: P1
+advance_if:
+  all_of:
+    - artifacts_present
+    - min_interviews_met
+    - repeated_pain_signals
+    - willingness_to_pay_quotes

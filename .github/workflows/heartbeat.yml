@@ -1,0 +1,14 @@
+name: Heartbeat
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 minutes
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+jobs:
+  beat:
+    runs-on: ubuntu-latest
+    permissions: { contents: read }
+    steps:
+      - run: echo "CoS alive @ $(date -u)"

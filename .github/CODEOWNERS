@@ -1,0 +1,5 @@
+# Tight control for policy & gates
+/policy/**            @jarednwolf
+/stage-gates/**       @jarednwolf
+/cos/**               @jarednwolf
+/.github/workflows/** @jarednwolf

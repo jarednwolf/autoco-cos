@@ -1,0 +1,41 @@
+name: Morning Brief
+on:
+  schedule:
+    - cron: "30 12 * * *"   # 12:30 UTC daily (~07:30 CT during CDT)
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+jobs:
+  morning-brief:
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Install deps
+        run: pip install -q -e .
+      - name: Generate brief
+        env:
+          GITHUB_REPOSITORY: "${{ github.repository }}"
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          TIMEZONE: "${{ vars.TIMEZONE || 'America/Chicago' }}"
+        run: python cos/evaluators/morning_brief.py
+      - name: (Optional) Email the brief
+        if: ${{ vars.EMAIL_FOR_BRIEFS != '' }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "Morning Brief – ${{ github.repository }}"
+          to: ${{ vars.EMAIL_FOR_BRIEFS }}
+          from: "autoco-bot <${{ secrets.SMTP_USERNAME }}>"
+          content_type: text/html
+          body: "See the 'Morning Brief' issue in ${{ github.repository }}."
+        continue-on-error: true

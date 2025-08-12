@@ -1,0 +1,69 @@
+name: Reusable Policy Gate
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        required: false
+        type: string
+        default: "3.11"
+jobs:
+  policy-gate:
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout caller (venture/company)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: venture
+      - name: Checkout L0 (policy & evaluators)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/autoco-cos
+          ref: main
+          path: l0
+      - name: Set PR SHAs
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          echo "PR_BASE_SHA=${{ github.event.pull_request.base.sha }}" >> $GITHUB_ENV
+          echo "PR_HEAD_SHA=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with: { python-version: ${{ inputs.python-version }} }
+      - name: Install deps
+        run: pip install -q -e l0
+      - name: Policy Gate
+        id: gate
+        env:
+          GITHUB_BASE_SHA: ${{ env.PR_BASE_SHA }}
+          GITHUB_SHA: ${{ env.PR_HEAD_SHA }}
+          DEFAULT_BRANCH: ${{ vars.DEFAULT_BRANCH || 'main' }}
+          TARGET_REPO_PATH: venture
+        run: python l0/cos/evaluators/policy_gate.py
+      - name: Label PR if P2
+        if: ${{ github.event_name == 'pull_request' && steps.gate.outputs.policy_level == 'P2' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: ['P2']
+            })
+      - name: Add 'automerge' label for P0/P1
+        if: ${{ github.event_name == 'pull_request' && steps.gate.outputs.policy_level != 'P2' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: ['automerge']
+            })

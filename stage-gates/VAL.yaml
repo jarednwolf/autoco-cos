@@ -1,0 +1,17 @@
+id: VAL
+name: Market Validation
+goal: Evidence people want this positioned solution.
+artifacts:
+  - landing-metrics.json
+  - pricing-test.md
+  - concierge-notes.md
+evidence_thresholds:
+  waitlist_signups: 100
+  or_qualified_leads: 10
+  or_paid_pilots: 3
+policy_level: P1
+advance_if:
+  any_of:
+    - waitlist_signups_met
+    - qualified_leads_met
+    - paid_pilots_met

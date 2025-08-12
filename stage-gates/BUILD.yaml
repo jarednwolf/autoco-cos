@@ -1,0 +1,15 @@
+id: BUILD
+name: Build (Behind Flags)
+goal: Production-grade MVP with analytics, tests, SLOs, support macros.
+artifacts:
+  - e2e-report.json
+  - slos.yaml
+  - activation-metrics.json
+thresholds:
+  e2e_pass_rate: 0.9
+  activation_rate: 0.2
+policy_level: P1
+advance_if:
+  all_of:
+    - e2e_pass_rate_met
+    - activation_rate_met

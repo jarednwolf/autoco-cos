@@ -1,0 +1,49 @@
+# Policy Levels for PR classification and merge gating
+# P0: Autonomous auto-merge (safe)
+# P1: Auto-merge if all checks pass
+# P2: Human approval required (CEO)
+# Note: `block_if_security_scan_fails` is enforced via branch protection required checks, not inside the gate script.
+
+defaults:
+  default_branch: "${{ env.DEFAULT_BRANCH || 'main' }}"
+  timezone: "${{ env.TIMEZONE || 'America/Chicago' }}"
+  budgets:
+    daily_token_usd: 25
+    daily_cloud_usd: 10
+
+classification:
+  # First match wins; order matters. Most restrictive should be discovered when present.
+  P2:
+    - "policy/**"
+    - "stage-gates/**"
+    - "cos/**"
+    - "infrastructure/**"
+    - "secrets/**"
+    - "data/**"
+  P1:
+    - ".github/workflows/**"
+    - "ring1/agents/**"
+    - "ring1/tools/**"
+    - "app/**"
+    - "tests/**"
+  P0:
+    - "docs/**"
+    - "**/*.md"
+    - "ring1/prompts/**"
+    - "ring1/playbooks/**"
+    - "**/*.yml"
+    - "**/*.yaml"
+    - "scripts/**"
+    - "templates/**"
+    - ".github/ISSUE_TEMPLATE/**"
+
+rules:
+  require_change_manifest: true
+  allowed_change_levels: [P0, P1, P2]
+  require_tests_on_p1: true
+  block_if_security_scan_fails: true
+  block_if_budget_exceeded: true
+
+outputs:
+  comment_summary: true
+  fail_on_policy_violation: true

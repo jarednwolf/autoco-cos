@@ -1,0 +1,80 @@
+name: Reusable Stage Gate Check
+on:
+  workflow_call:
+    inputs:
+      stage:
+        description: "Stage id (DISC-P, DISC-A, VAL, BUILD, LAUNCH, GROW)"
+        required: false
+        type: string
+      python-version:
+        required: false
+        type: string
+        default: "3.11"
+jobs:
+  stage-gate:
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ inputs.stage || 'auto' }}-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout venture (caller)
+        uses: actions/checkout@v4
+        with:
+          path: venture
+          fetch-depth: 0
+      - name: Checkout L0 (gate specs)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/autoco-cos
+          ref: main
+          path: l0
+      - name: Determine stage (fallback from Issue)
+        id: stage
+        env:
+          INPUT_STAGE: ${{ inputs.stage }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+        run: |
+          python - <<'PY'
+          import json, os, re
+          stage = os.environ.get("INPUT_STAGE") or ""
+          if not stage:
+              try:
+                  with open(os.environ["GITHUB_EVENT_PATH"], "r") as f:
+                      ev = json.load(f)
+                  stage = ev.get("issue",{}).get("title","") or ""
+                  if not stage:
+                      body = ev.get("issue",{}).get("body","") or ""
+                      m = re.search(r'\b(DISC-P|DISC-A|VAL|BUILD|LAUNCH|GROW)\b', body)
+                      if m: stage = m.group(1)
+              except Exception:
+                  stage = ""
+          print("Derived stage:", stage)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              fh.write(f"stage={stage}\n")
+          PY
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with: { python-version: ${{ inputs.python-version }} }
+      - name: Install deps
+        run: pip install -q -e l0
+      - name: Run Stage Gate Check
+        env:
+          L0_PATH: l0
+          VENTURE_PATH: venture
+          STAGE: ${{ steps.stage.outputs.stage }}
+        run: python l0/cos/evaluators/stage_gate_check.py
+      - name: Comment summary (PR)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: `Stage Gate Check passed for **${{ steps.stage.outputs.stage }}**.`
+            })

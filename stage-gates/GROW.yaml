@@ -1,0 +1,15 @@
+id: GROW
+name: Growth
+goal: Weekly A/Bs, cohort improvements, unit economics.
+artifacts:
+  - ab-log.jsonl
+  - cohort-report.json
+  - unit-econ.json
+thresholds:
+  retention_dN: 0.3
+  payback_months_max: 6
+policy_level: P1
+advance_if:
+  all_of:
+    - retention_met
+    - payback_within_threshold

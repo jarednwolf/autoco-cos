@@ -1,0 +1,17 @@
+id: LAUNCH
+name: Launch
+goal: Safe, monitored rollout with GTM plan live.
+artifacts:
+  - launch-plan.md
+  - rollback-plan.md
+  - uptime-report.json
+  - cac-microtest.json
+thresholds:
+  cac_max: 10.0
+  uptime_slo: 0.995
+policy_level: P2
+advance_if:
+  all_of:
+    - cac_within_threshold
+    - uptime_slo_met
+    - ceo_approval_received

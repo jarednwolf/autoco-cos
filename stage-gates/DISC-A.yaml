@@ -1,0 +1,25 @@
+id: DISC-A
+name: Brand/Positioning & Requirements Alignment
+goal: Lock what we build and how we show up before validation.
+artifacts:
+  - brand-brief.md
+  - positioning.md
+  - prfaq.md
+  - requirements-spec.md
+  - analytics-plan.yaml
+  - risk-assumptions.md
+thinking_models:
+  - Five Whys
+  - First Principles
+  - Pre-Mortem
+  - Inversion
+  - Jobs-to-be-Done
+  - RICE
+  - Demand Curve Hypothesis
+  - Ten-Star Experience
+  - Spiky POV
+policy_level: P2
+advance_if:
+  all_of:
+    - artifacts_present
+    - ceo_approval_received
