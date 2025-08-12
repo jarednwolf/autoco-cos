@@ -25,3 +25,4 @@ The **Chief of Staff (CoS)** is the control plane:
 - Layers: L0 (CoS) · L1 (Company‑001) · L2 (Ventures)
 - Stage Gates: DISC-P → DISC-A → VAL → BUILD → LAUNCH → GROW
 - Policy Levels: P0 (Autonomous) · P1 (Auto if checks pass) · P2 (Human approval)
+
