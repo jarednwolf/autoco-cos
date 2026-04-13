@@ -6,7 +6,7 @@ dependencies = [
   "fastapi>=0.110",
   "uvicorn>=0.27",
   "PyYAML>=6.0",
-  "PyGithub>=2.3.0",
+  "PyGithub>=2.9.0",
 ]
 
 [build-system]
